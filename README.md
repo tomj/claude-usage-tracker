@@ -93,13 +93,15 @@ Install [SwiftBar](https://github.com/swiftbar/SwiftBar):
 brew install --cask swiftbar
 ```
 
-On first launch, SwiftBar will ask you to choose a plugin directory (e.g. `~/swiftbar-plugins/`). Then symlink the plugin:
+On first launch, SwiftBar will ask you to choose a plugin directory (e.g. `~/swiftbar-plugins/`). Then symlink the plugin using **absolute paths** for both arguments:
 
 ```bash
-ln -s /path/to/claude-menubar.sh ~/swiftbar-plugins/claude-usage.3s.sh
+ln -s /absolute/path/to/claude-menubar.sh /absolute/path/to/swiftbar-plugins/claude-usage.1m.sh
 ```
 
-The `3s` in the filename tells SwiftBar to refresh every 3 seconds. You can change this (e.g. `10s`, `1m`).
+> **Important:** Both the symlink target and destination must be absolute paths. A relative target (e.g. `./claude-menubar.sh`) will resolve relative to the plugins directory, not where you ran the command, and SwiftBar will silently fail to load it.
+
+The suffix in the filename tells SwiftBar how often to refresh (e.g. `3s`, `10s`, `1m`).
 
 The menu bar will show a compact `5h:42% 7d:19%` summary, color-coded green/yellow/red. Click it to see the full dropdown with reset countdowns, context window, and token stats.
 
