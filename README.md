@@ -56,16 +56,18 @@ cp statusline-usage.sh ~/.claude/statusline-usage.sh
 
 ### 2. Configure Claude Code to use it
 
-Add the following to your `~/.claude/settings.json`:
+Add the following to your `~/.claude/settings.json`, using **absolute paths** for both the interpreter and the script:
 
 ```json
 {
   "statusLine": {
     "type": "command",
-    "command": "bash ~/.claude/statusline-usage.sh"
+    "command": "/bin/bash /Users/YOUR_USER/.claude/statusline-usage.sh"
   }
 }
 ```
+
+> **Important:** Tilde (`~`) and `$HOME` may not expand in the statusline execution environment. Always use fully resolved absolute paths (e.g. `/Users/yourname/...` on macOS, `/home/yourname/...` on Linux).
 
 If you already have a statusline script, you can integrate the usage-tracking part into your existing script. The key section to copy is the `jq -n ... > /tmp/claude-usage.json` block that writes the snapshot file.
 
