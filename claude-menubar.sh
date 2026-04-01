@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+
+# <xbar.title>Claude Usage</xbar.title>
+# <xbar.author>tomj</xbar.author>
+# <xbar.author.github>tomj</xbar.author.github>
+# <xbar.desc>Track Claude Code rate limits, context window, and token usage in the menu bar</xbar.desc>
+# <xbar.version>1.0</xbar.version>
+
 # Claude Usage — SwiftBar/xbar plugin
 # Reads /tmp/claude-usage.json and displays usage in the macOS menu bar.
 #
