@@ -1,6 +1,6 @@
 # Claude Usage Tracker
 
-A live-updating terminal dashboard that shows your Claude Code rate limits, context window usage, and token counts.
+Track your Claude Code rate limits, context window usage, and token counts — in a terminal dashboard or the macOS menu bar. No API keys or session cookies needed; it reads directly from Claude Code's statusline data.
 
 ```
 ╭────────────────────────────────────────────────╮
@@ -29,11 +29,13 @@ A live-updating terminal dashboard that shows your Claude Code rate limits, cont
 
 ## How it works
 
-Two scripts work together:
+Three scripts share a simple data pipeline:
 
 1. **`statusline-usage.sh`** — A Claude Code [statusline](https://docs.anthropic.com/en/docs/claude-code/status-line) script that runs automatically after each API response. It writes a JSON snapshot of your current usage data to `/tmp/claude-usage.json`.
 
 2. **`claude-dashboard.sh`** — A terminal dashboard that reads that JSON file every 3 seconds and renders a live display with progress bars, countdowns, and color-coded warnings.
+
+3. **`claude-menubar.sh`** — A [SwiftBar](https://github.com/swiftbar/SwiftBar)/[xbar](https://github.com/matryer/xbar) plugin that displays the same data in the macOS menu bar.
 
 ## Requirements
 
@@ -67,7 +69,9 @@ Add the following to your `~/.claude/settings.json`:
 
 If you already have a statusline script, you can integrate the usage-tracking part into your existing script. The key section to copy is the `jq -n ... > /tmp/claude-usage.json` block that writes the snapshot file.
 
-### 3. Run the dashboard
+### 3. Choose a display
+
+#### Option A: Terminal dashboard
 
 Open a separate terminal (or tmux pane) and run:
 
@@ -78,6 +82,26 @@ Open a separate terminal (or tmux pane) and run:
 Press `Ctrl+C` to exit.
 
 The dashboard will show "Waiting for data..." until you interact with Claude Code in another terminal. After your first message, the statusline script fires and the dashboard picks up the data.
+
+#### Option B: macOS menu bar (SwiftBar)
+
+Install [SwiftBar](https://github.com/swiftbar/SwiftBar):
+
+```bash
+brew install --cask swiftbar
+```
+
+On first launch, SwiftBar will ask you to choose a plugin directory (e.g. `~/swiftbar-plugins/`). Then symlink the plugin:
+
+```bash
+ln -s /path/to/claude-menubar.sh ~/swiftbar-plugins/claude-usage.3s.sh
+```
+
+The `3s` in the filename tells SwiftBar to refresh every 3 seconds. You can change this (e.g. `10s`, `1m`).
+
+The menu bar will show a compact `5h:42% 7d:19%` summary, color-coded green/yellow/red. Click it to see the full dropdown with reset countdowns, context window, and token stats.
+
+> **Note:** [xbar](https://github.com/matryer/xbar) uses the same plugin format, so `claude-menubar.sh` works with either.
 
 ## What it shows
 
@@ -92,8 +116,6 @@ Progress bars are color-coded:
 - **Green** — under 50%
 - **Yellow** — 50–80%
 - **Red** — over 80%
-
-A staleness warning appears if the data is more than 5 minutes old.
 
 ## Tips
 
