@@ -207,7 +207,7 @@ render() {
       ut=$(date -d "@$ts" +"%H:%M:%S" 2>/dev/null || date -r "$ts" +"%H:%M:%S" 2>/dev/null || echo "unknown")
     fi
     lv "Last data" "$ut" "$DIM"
-    lv "Clock" "$(date +%H:%M:%S)" "$WHITE"
+    lv "Clock" "$(date +%H:%M)" "$WHITE"
     hline "╰" "╯"
   )
 
