@@ -180,9 +180,10 @@ render() {
       blank
     fi
 
-    # Context & Tokens
+    # Active session stats
     hline "├" "┤"
     blank
+    hdr "Active Session"
 
     if [ -n "$ctx" ] && [ "$ctx" != "null" ]; then
       local cc="$GREEN" ci
