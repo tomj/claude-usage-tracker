@@ -43,6 +43,16 @@ color_for_pct() {
   else echo "#F44336"; fi                         # red
 }
 
+# Darker variants for dropdown (light background)
+dropdown_color_for_pct() {
+  local pct="$1"
+  local int_pct
+  int_pct=$(printf '%.0f' "$pct")
+  if   (( int_pct < 50 )); then echo "#1B5E20"  # dark green
+  elif (( int_pct < 80 )); then echo "#BF360C"  # dark orange
+  else echo "#B71C1C"; fi                         # dark red
+}
+
 # ── No data yet ─────────────────────────────────────────────
 if [ ! -f "$USAGE_FILE" ]; then
   echo "Claude: --"
@@ -76,16 +86,16 @@ bar_color="#4CAF50"
 
 if [ -n "$fh" ] && [ "$fh" != "null" ]; then
   fh_int=$(printf '%.0f' "$fh")
-  bar_parts="5h:${fh_int}%"
+  bar_parts="5h: ${fh_int}%"
   bar_color=$(color_for_pct "$fh")
 fi
 
 if [ -n "$sd" ] && [ "$sd" != "null" ]; then
   sd_int=$(printf '%.0f' "$sd")
   if [ -n "$bar_parts" ]; then
-    bar_parts="$bar_parts  7d:${sd_int}%"
+    bar_parts="$bar_parts  7d: ${sd_int}%"
   else
-    bar_parts="7d:${sd_int}%"
+    bar_parts="7d: ${sd_int}%"
   fi
   # Use the worse color of the two
   sd_color=$(color_for_pct "$sd")
@@ -105,34 +115,34 @@ echo "---"
 
 # 5-Hour Limit
 if [ -n "$fh" ] && [ "$fh" != "null" ]; then
-  fh_color=$(color_for_pct "$fh")
+  fh_color=$(dropdown_color_for_pct "$fh")
   printf "5-Hour Limit: %.1f%% | color=%s\n" "$fh" "$fh_color"
   if [ -n "$fhr" ] && [ "$fhr" != "null" ]; then
-    echo "  Resets in: $(countdown "$fhr") | color=#999999 size=12"
+    echo "  Resets in: $(countdown "$fhr") | color=#555555 size=12"
   fi
 fi
 
 # 7-Day Limit
 if [ -n "$sd" ] && [ "$sd" != "null" ]; then
-  sd_color=$(color_for_pct "$sd")
+  sd_color=$(dropdown_color_for_pct "$sd")
   printf "7-Day Limit: %.1f%% | color=%s\n" "$sd" "$sd_color"
   if [ -n "$sdr" ] && [ "$sdr" != "null" ]; then
-    echo "  Resets in: $(countdown "$sdr") | color=#999999 size=12"
+    echo "  Resets in: $(countdown "$sdr") | color=#555555 size=12"
   fi
 fi
 
 echo "---"
 
 # Active Session
-echo "Active Session | size=12 color=#999999"
+echo "Active Session | size=12 color=#333333"
 if [ -n "$ctx" ] && [ "$ctx" != "null" ]; then
   ci=$(printf '%.0f' "$ctx")
-  ctx_color=$(color_for_pct "$ctx")
+  ctx_color=$(dropdown_color_for_pct "$ctx")
   echo "  Context Window: ${ci}% | color=$ctx_color"
 fi
 if [ -n "$tin" ] && [ "$tin" != "null" ] && [ -n "$tout" ] && [ "$tout" != "null" ]; then
   total=$(( tin + tout ))
-  echo "  Tokens: $(fmttok $total) (in: $(fmttok "$tin") / out: $(fmttok "$tout")) | color=#CCCCCC"
+  echo "  Tokens: $(fmttok $total) (in: $(fmttok "$tin") / out: $(fmttok "$tout")) | color=#555555"
 fi
 
 echo "---"
@@ -140,6 +150,6 @@ echo "---"
 # Footer
 if [ -n "$ts" ]; then
   ut=$(date -d "@$ts" +"%H:%M:%S" 2>/dev/null || date -r "$ts" +"%H:%M:%S" 2>/dev/null || echo "unknown")
-  echo "Last data: $ut | size=11 color=#666666"
+  echo "Last data: $ut | size=11 color=#555555"
 fi
 echo "Refresh | refresh=true"
