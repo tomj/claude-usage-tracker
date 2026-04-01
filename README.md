@@ -8,7 +8,7 @@ A live-updating terminal dashboard that shows your Claude Code rate limits, cont
 ├────────────────────────────────────────────────┤
 │                                                │
 │  5-Hour Limit                                  │
-│  ██████████████░░░░░░░░░░░░░░░░░░░░  42.3%    │
+│  ██████████████░░░░░░░░░░░░░░░░░░░░  42.3%     │
 │    Resets in: 2h 34m                           │
 │                                                │
 │  7-Day Limit                                   │
@@ -19,7 +19,7 @@ A live-updating terminal dashboard that shows your Claude Code rate limits, cont
 │                                                │
 │  Context Window: 24%                           │
 │  Session Tokens: 47.0k                         │
-│    In / Out: 34.2k / 12.8k                    │
+│    In / Out: 34.2k / 12.8k                     │
 │                                                │
 ├────────────────────────────────────────────────┤
 │  Last data: 14:32:05                           │
