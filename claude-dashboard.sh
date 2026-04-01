@@ -149,15 +149,6 @@ render() {
     tin=$(echo "$data" | jq -r '.input_tokens // empty')
     tout=$(echo "$data" | jq -r '.output_tokens // empty')
 
-    # Staleness warning
-    if [ -n "$ts" ]; then
-      local age=$(( now - ts ))
-      if (( age > 300 )); then
-        center "Data is $(( age / 60 ))m old" "$DIM"
-        hline "├" "┤"
-      fi
-    fi
-
     blank
 
     # 5-Hour Rate Limit
