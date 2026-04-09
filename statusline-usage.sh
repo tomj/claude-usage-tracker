@@ -11,6 +11,7 @@
 input=$(cat)
 
 # Parse rate limit and session data from Claude Code's JSON
+cwd=$(echo "$input" | jq -r '.workspace.current_dir // .cwd // empty')
 ctx_used=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
 total_in=$(echo "$input" | jq -r '.context_window.total_input_tokens // empty')
 total_out=$(echo "$input" | jq -r '.context_window.total_output_tokens // empty')
@@ -63,23 +64,41 @@ format_time_until() {
   fi
 }
 
-# Optional: print a compact status to the Claude Code statusline
+# Print PS1-style prompt segment (green user@host : blue cwd)
+if [ -n "$cwd" ]; then
+  printf "\033[01;32m%s@%s\033[00m:\033[01;34m%s\033[00m" "$(whoami)" "$(hostname -s)" "$cwd"
+fi
+
+# Build pipe-separated metrics: | ctx:X% | tokens:X.Xk | 7d:X%(time) | 5h:X%(time)
 metrics=""
 if [ -n "$ctx_used" ]; then
-  metrics="ctx:$(printf '%.0f' "$ctx_used")%"
+  metrics="$metrics | ctx:$(printf '%.0f' "$ctx_used")%"
 fi
-if [ -n "$five_hour" ]; then
-  metrics="$metrics 5h:$(printf '%.0f' "$five_hour")%"
-  if [ -n "$five_hour_resets" ]; then
-    metrics="$metrics($(format_time_until "$five_hour_resets"))"
+if [ -n "$total_in" ] && [ -n "$total_out" ]; then
+  total=$(( total_in + total_out ))
+  if [ "$total" -ge 1000000 ]; then
+    formatted=$(awk "BEGIN { printf \"%.1fM\", $total/1000000 }")
+  elif [ "$total" -ge 1000 ]; then
+    formatted=$(awk "BEGIN { printf \"%.1fk\", $total/1000 }")
+  else
+    formatted="$total"
   fi
+  metrics="$metrics | tokens:${formatted}"
 fi
 if [ -n "$seven_day" ]; then
-  metrics="$metrics 7d:$(printf '%.0f' "$seven_day")%"
+  seg="7d:$(printf '%.0f' "$seven_day")%"
   if [ -n "$seven_day_resets" ]; then
-    metrics="$metrics($(format_time_until "$seven_day_resets"))"
+    seg="${seg}($(format_time_until "$seven_day_resets"))"
   fi
+  metrics="$metrics | $seg"
+fi
+if [ -n "$five_hour" ]; then
+  seg="5h:$(printf '%.0f' "$five_hour")%"
+  if [ -n "$five_hour_resets" ]; then
+    seg="${seg}($(format_time_until "$five_hour_resets"))"
+  fi
+  metrics="$metrics | $seg"
 fi
 if [ -n "$metrics" ]; then
-  printf "%s" "$metrics"
+  printf "\033[00;33m%s\033[00m" "$metrics"
 fi

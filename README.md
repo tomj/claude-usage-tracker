@@ -31,7 +31,7 @@ Track your Claude Code rate limits, context window usage, and token counts — i
 
 Three scripts share a simple data pipeline:
 
-1. **`statusline-usage.sh`** — A Claude Code [statusline](https://docs.anthropic.com/en/docs/claude-code/status-line) script that runs automatically after each API response. It writes a JSON snapshot of your current usage data to `/tmp/claude-usage.json`.
+1. **`statusline-usage.sh`** — A Claude Code [statusline](https://docs.anthropic.com/en/docs/claude-code/status-line) script that runs automatically after each API response. It writes a JSON snapshot of your current usage data to `/tmp/claude-usage.json` **and** renders a compact, color-coded status line in your Claude Code prompt (see below).
 
 2. **`claude-dashboard.sh`** — A terminal dashboard that reads that JSON file every 3 seconds and renders a live display with progress bars, countdowns, and color-coded warnings.
 
@@ -69,7 +69,15 @@ Add the following to your `~/.claude/settings.json`, using **absolute paths** fo
 
 > **Important:** Tilde (`~`) and `$HOME` may not expand in the statusline execution environment. Always use fully resolved absolute paths (e.g. `/Users/yourname/...` on macOS, `/home/yourname/...` on Linux).
 
-If you already have a statusline script, you can integrate the usage-tracking part into your existing script. The key section to copy is the `jq -n ... > /tmp/claude-usage.json` block that writes the snapshot file.
+Your Claude Code prompt will now show something like:
+
+```
+user@host:/path/to/project | ctx:42% | tokens:23.5k | 7d:15%(4d3h) | 5h:30%(2h14m)
+```
+
+Fields (left to right): current working directory, context window %, total session tokens, 7-day rate limit with time until reset, 5-hour rate limit with time until reset. The 5-hour limit is pinned to the far right since it's the one that matters most day-to-day.
+
+If you already have a statusline script, you can integrate just the usage-tracking part into your existing script — copy the `jq -n ... > /tmp/claude-usage.json` block that writes the snapshot file and leave the rest of your script alone.
 
 ### 3. Choose a display
 
