@@ -41,6 +41,28 @@ jq -n \
     seven_day_resets_at: (if $sdr != "" then ($sdr | tonumber) else null end)
   }' > "$usage_file" 2>/dev/null
 
+# Format seconds until a target unix timestamp as e.g. "2h14m" or "4d3h"
+format_time_until() {
+  local target=$1
+  local now diff days hours minutes
+  now=$(date +%s)
+  diff=$((target - now))
+  if [ "$diff" -le 0 ]; then
+    printf "0m"
+    return
+  fi
+  days=$((diff / 86400))
+  hours=$(((diff % 86400) / 3600))
+  minutes=$(((diff % 3600) / 60))
+  if [ "$days" -gt 0 ]; then
+    printf "%dd%dh" "$days" "$hours"
+  elif [ "$hours" -gt 0 ]; then
+    printf "%dh%dm" "$hours" "$minutes"
+  else
+    printf "%dm" "$minutes"
+  fi
+}
+
 # Optional: print a compact status to the Claude Code statusline
 metrics=""
 if [ -n "$ctx_used" ]; then
@@ -48,9 +70,15 @@ if [ -n "$ctx_used" ]; then
 fi
 if [ -n "$five_hour" ]; then
   metrics="$metrics 5h:$(printf '%.0f' "$five_hour")%"
+  if [ -n "$five_hour_resets" ]; then
+    metrics="$metrics($(format_time_until "$five_hour_resets"))"
+  fi
 fi
 if [ -n "$seven_day" ]; then
   metrics="$metrics 7d:$(printf '%.0f' "$seven_day")%"
+  if [ -n "$seven_day_resets" ]; then
+    metrics="$metrics($(format_time_until "$seven_day_resets"))"
+  fi
 fi
 if [ -n "$metrics" ]; then
   printf "%s" "$metrics"
