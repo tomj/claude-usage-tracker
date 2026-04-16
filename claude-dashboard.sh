@@ -3,6 +3,8 @@
 # Reads from /tmp/claude-usage.json (written by statusline-command.sh)
 
 USAGE_FILE="/tmp/claude-usage.json"
+STATUS_CACHE="/tmp/claude-status-rss.cache"
+STATUS_MAX_AGE=60
 REFRESH=3
 
 # Colors
@@ -85,6 +87,43 @@ pbar() { # pbar <percentage>
   local pad=$(( INNER - 2 - bw - 1 - ${#ps} ))
   (( pad < 0 )) && pad=0
   printf "│  %b%s%b %b%s%b%*s│\n" "$c" "$b" "$RST" "$BOLD" "$ps" "$RST" $pad ""
+}
+
+# ── Status page ────────────────────────────────────────────
+
+fetch_status() {
+  local now
+  now=$(date +%s)
+  # Re-fetch if cache is missing or stale
+  if [ ! -f "$STATUS_CACHE" ] || \
+     (( now - $(stat -f %m "$STATUS_CACHE" 2>/dev/null || echo 0) > STATUS_MAX_AGE )); then
+    curl -sf --max-time 5 https://status.claude.com/history.rss > "$STATUS_CACHE.tmp" 2>/dev/null \
+      && mv "$STATUS_CACHE.tmp" "$STATUS_CACHE" \
+      || rm -f "$STATUS_CACHE.tmp"
+  fi
+}
+
+# Returns the title of the first unresolved incident, or empty string
+get_active_incident() {
+  [ -f "$STATUS_CACHE" ] || return
+  # Extract items, check if the first <strong> in description is NOT "Resolved"
+  awk '
+    /<item>/      { in_item=1; title=""; desc="" }
+    /<\/item>/    { in_item=0
+      # Check if latest status (first <strong>) is Resolved
+      if (desc !~ /<strong>Resolved<\/strong>/) {
+        print title
+        exit
+      }
+    }
+    in_item && /<title>/ {
+      gsub(/.*<title>/, ""); gsub(/<\/title>.*/, "")
+      title = $0
+    }
+    in_item && /<description>/ { in_desc=1; desc="" }
+    in_desc { desc = desc $0 }
+    /<\/description>/ { in_desc=0 }
+  ' "$STATUS_CACHE"
 }
 
 # ── Helpers ─────────────────────────────────────────────────
@@ -200,6 +239,21 @@ render() {
     fi
     lv "Last data" "$ut" "$DIM"
     lv "Clock" "$(date +%H:%M)" "$WHITE"
+
+    # Status page incidents
+    fetch_status
+    local incident
+    incident=$(get_active_incident)
+    if [ -n "$incident" ]; then
+      local short
+      short=$(echo "$incident" | awk '{print $1, $2}')
+      hline "├" "┤"
+      local _t="Active Incident"
+      local _d="$short"
+      printf '│  %b%s%b%*s│\n' "$BOLD$YELLOW" "$_t" "$RST" $(( INNER - 2 - ${#_t} )) ""
+      printf '│  %b%s%b%*s│\n' "$DIM$YELLOW" "$_d" "$RST" $(( INNER - 2 - ${#_d} )) ""
+    fi
+
     hline "╰" "╯"
   )
 
